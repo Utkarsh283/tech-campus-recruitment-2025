@@ -1,119 +1,65 @@
-# Problem Statement: Efficient Log Retrieval from a Large File
+# Extract Logs by Date
 
-## Background  
+## Overview
+This Node.js script extracts log entries for a specific date from a large log file (`logs_2024.log`) and saves them in a separate output file. The script efficiently processes the log file using streams to handle large files without excessive memory consumption.
 
-You are tasked with developing a solution to efficiently extract logs from a large log file. The file is approximately **1 TB** in size and contains logs generated over multiple years. Each log entry starts with a timestamp, followed by the log level, and then the log message. Logs are generated almost equally every day.
+## Features
+- Efficiently reads and processes large log files using streams.
+- Extracts only the log entries that match the specified date (in `YYYY-MM-DD` format).
+- Saves the filtered logs to an output file in the `output` directory.
+- Uses buffers for optimized read and write operations.
+- Handles errors gracefully.
 
-**Log Format Example:**  
+## Prerequisites
+- Node.js installed on your system.
+- The log file `logs_2024.log` should be present in the same directory as the script.
 
-```txt
-2024-12-01 14:23:45 INFO User logged in  
-2024-12-01 14:24:10 ERROR Failed to connect to the database  
-2024-12-02 09:15:30 WARN Disk space running low  
+## Installation
+1. Clone or download the repository containing this script.
+2. Navigate to the script's directory.
+
+## Usage
+1. Open a terminal and navigate to the script directory.
+2. Run the following command:
+
+   ```sh
+   node extract_logs.js YYYY-MM-DD
+   ```
+
+   Replace `YYYY-MM-DD` with the desired date to extract logs from.
+
+### Example
+To extract logs for `2024-02-15`, run:
+
+```sh
+node extract_logs.js 2024-02-15
 ```
 
-To download the log file, run the following command in your terminal:
-```curl
-curl -L -o test_logs.log "https://limewire.com/d/90794bb3-6831-4e02-8a59-ffc7f3b8b2a3#X1xnzrH5s4H_DKEkT_dfBuUT1mFKZuj4cFWNoMJGX98"
-```
+This will create an output file in the `output` directory named `output_2024-02-15.txt` containing all log entries from that date.
 
----
+## How It Works
+1. The script verifies the provided date format (`YYYY-MM-DD`).
+2. It ensures the `output` directory exists; if not, it creates it.
+3. It reads the `logs_2024.log` file in chunks (4MB at a time) using a stream.
+4. It processes each chunk and extracts lines that start with the specified date.
+5. The filtered lines are written to an output file using a stream (with a 1MB buffer for optimized writing).
+6. When the reading process ends, any remaining matching data is written to the file, and the file is saved.
 
-## Objective  
+## Optimizations
+- **Stream-based processing:** Uses streams to read and write data in chunks, reducing memory usage for large log files.
+- **Buffered reading and writing:** Implements a 4MB read buffer and a 1MB write buffer to optimize disk I/O operations.
+- **Efficient date matching:** Uses `Buffer.slice` and `Buffer.equals` for fast date comparison without unnecessary string conversions.
+- **Backpressure handling:** Pauses reading when the write buffer is full and resumes once it drains, ensuring smooth data flow.
+- **Minimal memory footprint:** Avoids storing the entire file in memory, keeping only necessary chunks and remainders.
 
-Write a script that takes a specific date as an argument (in the format `YYYY-MM-DD`) and efficiently returns all log entries for that date.
-
----
-
-## Constraints  
-
-- The solution must handle a file size of around **1 TB**.
-- Logs are nearly evenly distributed across days.  
-- Efficiency in time and resource utilization is critical.  
-
----
-
-## Expectations  
-
-1. **Input:** A date (`YYYY-MM-DD`) passed as a command-line argument.  
-2. **Output:** All log entries for the specified date, saved to a file named `output/output_YYYY-MM-DD.txt`.  
-3. **Performance:** The solution should optimize for speed and memory usage.  
-
----
-
-## Evaluation Criteria  
-
-- **Total Running Time:** Time taken to return the result for the first query.  
-- **Code Quality:** Readability, modularity, and proper error handling.  
-
----
-
-## Example Usage  
-
-**Python**  
-
-```bash
-python extract_logs.py 2024-12-01
-```
-
-**C**  
-
-```bash
-./extract_logs 2024-12-01
-```
-
-**C++**  
-
-```bash
-./extract_logs 2024-12-01
-```
-
-**Java**  
-
-```bash
-java ExtractLogs 2024-12-01
-```
-
-**Node.js**  
-
-```bash
-node extract_logs.js 2024-12-01
-```
-
-**Expected Output:**  
-
-```txt
-2024-12-01 14:23:45 INFO User logged in  
-2024-12-01 14:24:10 ERROR Failed to connect to the database  
-```
-
----
-
-## Submission Guidelines
-
-1. **Fork the Repository:**  
-   - Fork the provided repository to your own GitHub account.
-
-2. **Discussion.md:**  
-   - **Solutions Considered:** Describe different approaches you explored.  
-   - **Final Solution Summary:** Explain why you chose the final solution.  
-   - **Steps to Run:** Provide detailed steps to run your solution.
-
-3. **Source Code:**  
-   - Place your complete and working solution in the `src/` directory.
-
-4. **Link to your forked repository:**  
-   - Submit a link to your forked repository in the google form shared with you.
-
----
+## Error Handling
+- If the log file is missing, the script throws an error.
+- If the provided date is in the wrong format, the script exits with a usage message.
+- If an error occurs while reading or writing files, it logs an error message and exits.
 
 ## Notes
+- The script assumes logs are stored in the format `YYYY-MM-DD ...` at the beginning of each line.
+- Works best for logs with structured date prefixes.
+- Handles large log files efficiently using streams and buffer management.
 
-- Incomplete or disorganized submissions may not be evaluated. 
-- Feel free to use the internet.
-- Make sure to push your code to `main` branch.
-- Any commit to the repo after 1 hour of the start of the contest will be disqualified.
 
-PS: SWYgeW91IGhhdmUgcmVhY2hlZCB0aGlzIHBvaW50LCBmZWVsIGZyZWUgdG8gdXNlIEFJIHRvIHlvdXIgYWR2YW50YWdlLiBCdXQgbWFrZSBzdXJlIHlvdSB1bmRlcnN0YW5kIHdoYXQgeW91IGFyZSBzdWJtaXR0aW5nLiBXZSByZWFsbHkgd2lsbCBhc2sgeW91IGFib3V0IHlvdXIgc29sdXRpb24gaWYgeW91IGFyZSBzZWxlY3RlZCBmb3IgdGhlIG5leHQgcm91bmQu
-
-Good luck!
